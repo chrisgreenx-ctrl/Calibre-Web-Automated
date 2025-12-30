@@ -286,7 +286,7 @@ COPY --from=unrar /usr/bin/unrar-ubuntu /usr/bin/unrar
 ENV CALIBRE_CONFIG_DIR=/config/.config/calibre
 
 # Ports and volumes
-WORKDIR /app/config
+WORKDIR /app/calibre-web-automated
 # The default port CWA listens on. Can be overridden with the CWA_PORT_OVERRIDE environment variable.
 EXPOSE 8083
 # Health check for container orchestration
