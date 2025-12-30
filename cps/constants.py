@@ -132,11 +132,19 @@ DEFAULT_MAIL_SERVER = "mail.example.org"
 DEFAULT_PASSWORD    = "admin123"  # nosec
 DEFAULT_PORT        = 8083
 env_CWA_PORT_OVERRIDE = os.environ.get("CWA_PORT_OVERRIDE")
+env_PORT = os.environ.get("PORT")
+
 if env_CWA_PORT_OVERRIDE:
     try:
         DEFAULT_PORT = int(env_CWA_PORT_OVERRIDE)
     except (ValueError, TypeError):
         print(f"Environment variable CWA_PORT_OVERRIDE has invalid value ('{env_CWA_PORT_OVERRIDE}'), falling back to default (8083)")
+        DEFAULT_PORT = 8083
+elif env_PORT:
+    try:
+        DEFAULT_PORT = int(env_PORT)
+    except (ValueError, TypeError):
+        print(f"Environment variable PORT has invalid value ('{env_PORT}'), falling back to default (8083)")
         DEFAULT_PORT = 8083
 
 
