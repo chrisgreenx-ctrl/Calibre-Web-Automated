@@ -102,8 +102,8 @@ class Book:
         self.book_title, self.author_name, self.title_author = self.get_title_and_author()
 
         self.calibre_env = os.environ.copy()
-        # Enables Calibre plugins to be used from /config/plugins
-        self.calibre_env["HOME"] = "/config"
+        # Enables Calibre plugins to be used from /volume/calibre-web-automated/config/plugins
+        self.calibre_env["HOME"] = "/volume/calibre-web-automated/config"
         # Gets split library info from app.db and sets library dir to the split dir if split library is enabled
         self.split_library = self.get_split_library()
         if self.split_library:
@@ -119,7 +119,7 @@ class Book:
 
     def get_split_library(self) -> dict[str, str] | None:
         """Checks whether or not the user has split library enabled. Returns None if they don't and the path of the Split Library location if True."""
-        con = sqlite3.connect("/config/app.db", timeout=30)
+        con = sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30)
         cur = con.cursor()
         split_library = cur.execute('SELECT config_calibre_split FROM settings;').fetchone()[0]
 
@@ -193,8 +193,8 @@ class Enforcer:
         self.illegal_characters = ["<", ">", ":", '"', "/", "\\", "|", "?", "*"]
 
         self.calibre_env = os.environ.copy()
-        # Enables Calibre plugins to be used from /config/plugins
-        self.calibre_env["HOME"] = "/config"
+        # Enables Calibre plugins to be used from /volume/calibre-web-automated/config/plugins
+        self.calibre_env["HOME"] = "/volume/calibre-web-automated/config"
         # Gets split library info from app.db and sets library dir to the split dir if split library is enabled
         self.split_library = self.get_split_library()
         if self.split_library:
@@ -203,7 +203,7 @@ class Enforcer:
 
         # Read Calibre-Web setting: config_unicode_filename (True -> transliterate non-English in filenames)
         try:
-            with sqlite3.connect("/config/app.db", timeout=30) as con:
+            with sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30) as con:
                 cur = con.cursor()
                 self.unicode_filename = bool(cur.execute('SELECT config_unicode_filename FROM settings;').fetchone()[0])
         except Exception:
@@ -222,7 +222,7 @@ class Enforcer:
 
     def get_split_library(self) -> dict[str, str] | None:
         """Checks whether or not the user has split library enabled. Returns None if they don't and the path of the Split Library location if True."""
-        con = sqlite3.connect("/config/app.db", timeout=30)
+        con = sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30)
         cur = con.cursor()
         split_library = cur.execute('SELECT config_calibre_split FROM settings;').fetchone()[0]
 

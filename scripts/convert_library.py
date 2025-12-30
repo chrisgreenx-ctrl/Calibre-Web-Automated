@@ -25,7 +25,7 @@ from cwa_db import CWA_DB
 from kindle_epub_fixer import EPUBFixer
 
 ### Global Variables
-convert_library_log_file = "/config/convert-library.log"
+convert_library_log_file = "/volume/calibre-web-automated/config/convert-library.log"
 
 # Define the logger
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ atexit.register(removeLock)
 
 backup_destinations = {
         entry.name: entry.path
-        for entry in os.scandir("/config/processed_books")
+        for entry in os.scandir("/volume/calibre-web-automated/config/processed_books")
         if entry.is_dir()
     }
 
@@ -129,8 +129,8 @@ class LibraryConverter:
         self.ingest_folder, self.library_dir, self.tmp_conversion_dir = self.get_dirs('/app/calibre-web-automated/dirs.json')
 
         self.calibre_env = os.environ.copy()
-        # Enables Calibre plugins to be used from /config/plugins
-        self.calibre_env["HOME"] = "/config"
+        # Enables Calibre plugins to be used from /volume/calibre-web-automated/config/plugins
+        self.calibre_env["HOME"] = "/volume/calibre-web-automated/config"
         # Gets split library info from app.db and sets library dir to the split dir if split library is enabled
         self.split_library = self.get_split_library()
         if self.split_library:
@@ -141,7 +141,7 @@ class LibraryConverter:
 
     def get_split_library(self) -> dict[str, str] | None:
         """Checks whether or not the user has split library enabled. Returns None if they don't and the path of the Split Library location if True."""
-        con = sqlite3.connect("/config/app.db", timeout=30)
+        con = sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30)
         cur = con.cursor()
         split_library = cur.execute('SELECT config_calibre_split FROM settings;').fetchone()[0]
 
@@ -448,9 +448,9 @@ class LibraryConverter:
 
                 print_and_log(f"[convert-library]: ({self.current_book}/{len(self.to_convert)}) Import of {os.path.basename(target_filepath)} successfully completed!")
             except subprocess.CalledProcessError as e:
-                print_and_log(f"[convert-library]: ({self.current_book}/{len(self.to_convert)}) Import of {os.path.basename(target_filepath)} was not successfully completed. Converted file moved to /config/processed_books/failed/{os.path.basename(target_filepath)}. See the following error:\n{e}")
+                print_and_log(f"[convert-library]: ({self.current_book}/{len(self.to_convert)}) Import of {os.path.basename(target_filepath)} was not successfully completed. Converted file moved to /volume/calibre-web-automated/config/processed_books/failed/{os.path.basename(target_filepath)}. See the following error:\n{e}")
                 try:
-                    output_path = f"/config/processed_books/failed/{os.path.basename(target_filepath)}"
+                    output_path = f"/volume/calibre-web-automated/config/processed_books/failed/{os.path.basename(target_filepath)}"
                     shutil.move(target_filepath, output_path)
                 except Exception as e:
                     print_and_log(f"[convert-library]: ERROR - The following error occurred when trying to copy {file} to {output_path}:\n{e}")

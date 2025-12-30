@@ -34,11 +34,11 @@ spec:
             - containerPort: 8083
               protocol: TCP
           volumeMounts:
-            - mountPath: /config
+            - mountPath: /volume/calibre-web-automated/config
               name: calibre-web-automated-config
-            - mountPath: /cwa-book-ingest
+            - mountPath: /volume/calibre-web-automated/cwa-book-ingest
               name: calibre-web-automated-ingest
-            - mountPath: /calibre-library
+            - mountPath: /volume/calibre-web-automated/calibre-library
               name: calibre-library
           resources: {} # Add resource requests/limits here if needed
       restartPolicy: Always

@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-export CALIBRE_DBPATH=/config
+export CALIBRE_DBPATH=/volume/calibre-web-automated/config
 
 # If CWA_PORT_OVERRIDE is not set, but PORT is set, use PORT
 if [ -z "$CWA_PORT_OVERRIDE" ] && [ -n "$PORT" ]; then
