@@ -10,6 +10,23 @@ if [[ "$ARCH" != "x86_64" && "$ARCH" != "aarch64" ]]; then
   echo "[cwa-init] CWA is optimized for x86_64 and aarch64. You may experience issues."
 fi
 
+# Create essential volume directories if they don't exist (Railway volume setup)
+# These directories need to be created at runtime since /volume is mounted at runtime
+echo "[cwa-init] Checking and creating essential volume directories..."
+for vol_dir in "/volume/calibre-web-automated/config" "/volume/calibre-web-automated/calibre-library" "/volume/calibre-web-automated/cwa-book-ingest"; do
+  if [[ ! -d "$vol_dir" ]]; then
+    echo "[cwa-init] Creating directory: $vol_dir"
+    install -d -o abc -g abc "$vol_dir"
+    if [[ $? -eq 0 ]]; then
+      echo "[cwa-init] Successfully created $vol_dir"
+    else
+      echo "[cwa-init] WARNING: Failed to create $vol_dir"
+    fi
+  else
+    echo "[cwa-init] Directory already exists: $vol_dir"
+  fi
+done
+
 # Verify essential directories exist and are accessible
 echo "[cwa-init] Verifying essential directories..."
 for dir in "/app/calibre-web-automated" "/volume/calibre-web-automated/config" "/volume/calibre-web-automated/calibre-library" "/app/calibre"; do
