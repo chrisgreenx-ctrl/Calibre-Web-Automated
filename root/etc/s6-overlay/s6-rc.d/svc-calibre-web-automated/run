@@ -3,6 +3,11 @@
 
 export CALIBRE_DBPATH=/config
 
+# If CWA_PORT_OVERRIDE is not set, but PORT is set, use PORT
+if [ -z "$CWA_PORT_OVERRIDE" ] && [ -n "$PORT" ]; then
+    export CWA_PORT_OVERRIDE="$PORT"
+fi
+
 exec \
     s6-notifyoncheck -d -n 300 -w 1000 -c "nc -z localhost ${CWA_PORT_OVERRIDE:-8083}" \
         cd /app/calibre-web-automated s6-setuidgid abc python3 /app/calibre-web-automated/cps.py
