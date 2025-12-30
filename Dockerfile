@@ -4,7 +4,7 @@
 # docker build \
 # --tag crocodilestick/calibre-web-automated:dev \
 # --build-arg="BUILD_DATE=27-09-2024 12:06" \
-# --build-arg="VERSION=2.1.0-test-5" .
+# --build-arg="VERSION=V3.1.4" .
 
 # Good guide on how to set up a buildx builder here:
 # https://a-berahman.medium.com/simplifying-docker-multiplatform-builds-with-buildx-3d7efd670f58
@@ -14,7 +14,7 @@
 # --push \
 # --platform linux/amd64,linux/arm64, \
 # --build-arg="BUILD_DATE=02-08-2024 20:52" \
-# --build-arg="VERSION=2.1.0" \
+# --build-arg="VERSION=V3.1.4" \
 # --tag crocodilestick/calibre-web-automated:latest .
 
 # ============================================================================
@@ -283,7 +283,7 @@ RUN \
 COPY --from=unrar /usr/bin/unrar-ubuntu /usr/bin/unrar
 
 # Set calibre environment variable
-ENV CALIBRE_CONFIG_DIR=/config/.config/calibre
+ENV CALIBRE_CONFIG_DIR=/volume/calibre-web-automated/config/.config/calibre
 
 # Ports and volumes
 WORKDIR /app/calibre-web-automated

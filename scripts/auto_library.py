@@ -27,10 +27,10 @@ def main():
 
 class AutoLibrary:
     def __init__(self):
-        self.config_dir = "/config"
-        self.library_dir = "/calibre-library"
+        self.config_dir = "/volume/calibre-web-automated/config"
+        self.library_dir = "/volume/calibre-web-automated/calibre-library"
         self.dirs_path = "/app/calibre-web-automated/dirs.json"
-        self.app_db = "/config/app.db"
+        self.app_db = "/volume/calibre-web-automated/config/app.db"
 
         self.empty_appdb = "/app/calibre-web-automated/empty_library/app.db"
         self.empty_metadb = "/app/calibre-web-automated/empty_library/metadata.db"
@@ -93,7 +93,7 @@ class AutoLibrary:
             index_of_biggest_db = max(range(len(db_sizes)), key=db_sizes.__getitem__)
             self.metadb_path = db_files[index_of_biggest_db]
             print(f"\n[cwa-auto-library]: Automatically mounting the largest database using the following db file - {db_files[index_of_biggest_db]} ...")
-            print("\n[cwa-auto-library]: If this is unwanted, please ensure only 1 metadata.db file / only your desired Calibre Database exists in '/calibre-library', then restart the container")
+            print("\n[cwa-auto-library]: If this is unwanted, please ensure only 1 metadata.db file / only your desired Calibre Database exists in '/volume/calibre-web-automated/calibre-library', then restart the container")
             return True
         else:
             return False

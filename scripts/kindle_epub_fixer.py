@@ -34,7 +34,7 @@ dirs_json = "/app/calibre-web-automated/dirs.json"
 change_logs_dir = "/app/calibre-web-automated/metadata_change_logs"
 metadata_temp_dir = "/app/calibre-web-automated/metadata_temp"
 # Log file path
-epub_fixer_log_file = "/config/epub-fixer.log"
+epub_fixer_log_file = "/volume/calibre-web-automated/config/epub-fixer.log"
 
 ### LOGGING
 # Define the logger
@@ -149,7 +149,7 @@ class EPUBFixer:
     def _get_metadata_db_path(self) -> str:
         """Get the path to metadata.db considering split library configuration."""
         try:
-            con = sqlite3.connect("/config/app.db", timeout=30)
+            con = sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30)
             cur = con.cursor()
             split_library = cur.execute('SELECT config_calibre_split FROM settings;').fetchone()[0]
 
@@ -211,7 +211,7 @@ class EPUBFixer:
         """Backup original file"""
         if self.cwa_settings['auto_backup_epub_fixes']:
             try:
-                output_path = f"/config/processed_books/fixed_originals/"
+                output_path = f"/volume/calibre-web-automated/config/processed_books/fixed_originals/"
                 shutil.copy2(epub_path, output_path)
             except Exception as e:
                 print_and_log(f"[cwa-kindle-epub-fixer] ERROR - Error occurred when backing up {epub_path} to {output_path}:\n{e}", log=self.manually_triggered)
@@ -449,7 +449,7 @@ class EPUBFixer:
 
 
 def get_library_location() -> str:
-    con = sqlite3.connect("/config/app.db", timeout=30)
+    con = sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30)
     cur = con.cursor()
     split_library = cur.execute('SELECT config_calibre_split FROM settings;').fetchone()[0]
 

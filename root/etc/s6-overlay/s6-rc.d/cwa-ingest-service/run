@@ -6,28 +6,28 @@ WATCH_FOLDER=$(grep -o '"ingest_folder": "[^"]*' /app/calibre-web-automated/dirs
 echo "[cwa-ingest-service] Watching folder: $WATCH_FOLDER"
 
 # Create queue file for retry processing (persistent across restarts)
-QUEUE_FILE="/config/cwa_ingest_retry_queue"
+QUEUE_FILE="/volume/calibre-web-automated/config/cwa_ingest_retry_queue"
 touch "$QUEUE_FILE"
 
 # Create status file for basic status tracking (persistent across restarts)
-STATUS_FILE="/config/cwa_ingest_status"
+STATUS_FILE="/volume/calibre-web-automated/config/cwa_ingest_status"
 echo "idle" > "$STATUS_FILE"
 
 # Ensure failed backup directory exists
-mkdir -p "/config/processed_books/failed" 2>/dev/null || true
+mkdir -p "/volume/calibre-web-automated/config/processed_books/failed" 2>/dev/null || true
 
 # Function to get timeout from database
 get_timeout_from_db() {
     local timeout_minutes
     # Try sqlite3 first, fallback to Python if not available
     if command -v sqlite3 >/dev/null 2>&1; then
-        timeout_minutes=$(sqlite3 /config/cwa.db "SELECT ingest_timeout_minutes FROM cwa_settings LIMIT 1;" 2>/dev/null || echo "15")
+        timeout_minutes=$(sqlite3 /volume/calibre-web-automated/config/cwa.db "SELECT ingest_timeout_minutes FROM cwa_settings LIMIT 1;" 2>/dev/null || echo "15")
     else
         # Fallback to Python
         timeout_minutes=$(python3 -c "
 import sqlite3
 try:
-    conn = sqlite3.connect('/config/cwa.db')
+    conn = sqlite3.connect('/volume/calibre-web-automated/config/cwa.db')
     cursor = conn.cursor()
     cursor.execute('SELECT ingest_timeout_minutes FROM cwa_settings LIMIT 1')
     result = cursor.fetchone()
@@ -105,10 +105,10 @@ process_retry_queue() {
                                 elif [ $retry_exit -eq 124 ]; then
                                         # Timeout, remove problematic file
                                         echo "[cwa-ingest-service] TIMEOUT on retry: $queued_file, removing"
-                                        if [ -d "/config/processed_books/failed" ]; then
+                                        if [ -d "/volume/calibre-web-automated/config/processed_books/failed" ]; then
                                                 local timestamp=$(date '+%Y%m%d_%H%M%S')
                                                 local failed_filename="${timestamp}_retry_timeout_$(basename "$queued_file")"
-                                                cp "$queued_file" "/config/processed_books/failed/$failed_filename" 2>/dev/null || true
+                                                cp "$queued_file" "/volume/calibre-web-automated/config/processed_books/failed/$failed_filename" 2>/dev/null || true
                                         fi
                                         rm -f "$queued_file" 2>/dev/null || true
                                 elif [ $retry_exit -eq 0 ]; then
@@ -155,11 +155,11 @@ handle_event() {
                 echo "[cwa-ingest-service] This indicates a serious issue - processor should have timed out internally at ${configured_timeout} seconds"
                 echo "safety_timeout:$filename:$(date '+%Y-%m-%d %H:%M:%S')" > "$STATUS_FILE"
                 # Move problematic file to failed backup with timestamp
-                if [ -d "/config/processed_books/failed" ]; then
+                if [ -d "/volume/calibre-web-automated/config/processed_books/failed" ]; then
                         local timestamp=$(date '+%Y%m%d_%H%M%S')
                         local failed_filename="${timestamp}_safety_timeout_${filename}"
                         echo "[cwa-ingest-service] Moving $filename to failed backup as $failed_filename"
-                        cp "$filepath" "/config/processed_books/failed/$failed_filename" 2>/dev/null || true
+                        cp "$filepath" "/volume/calibre-web-automated/config/processed_books/failed/$failed_filename" 2>/dev/null || true
                 fi
                 rm -f "$filepath" 2>/dev/null || true
         elif [ $exit_code -eq 2 ]; then

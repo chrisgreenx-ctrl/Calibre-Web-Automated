@@ -39,7 +39,7 @@ cleanup_temp_files() {
     echo "[cwa-process-recovery] Cleaning up stale temporary files..."
     
     local temp_dirs=(
-        "/config/.cwa_conversion_tmp"
+        "/volume/calibre-web-automated/config/.cwa_conversion_tmp"
         "/tmp"
     )
     
@@ -73,7 +73,7 @@ cleanup_temp_files() {
 reset_processing_status() {
     echo "[cwa-process-recovery] Checking processing status..."
     
-    local status_file="/config/cwa_ingest_status"
+    local status_file="/volume/calibre-web-automated/config/cwa_ingest_status"
     
     if [ -f "$status_file" ]; then
         local status_content=$(cat "$status_file" 2>/dev/null || echo "unknown")

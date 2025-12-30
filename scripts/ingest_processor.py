@@ -234,7 +234,7 @@ if not process_lock.acquire(timeout=10):
 
 # Ensure processed backups directory structure exists so backups never crash on missing folders
 try:
-    _processed_root = "/config/processed_books"
+    _processed_root = "/volume/calibre-web-automated/config/processed_books"
     os.makedirs(_processed_root, exist_ok=True)
     for _name in ("converted", "imported", "fixed_originals", "failed"):
         os.makedirs(os.path.join(_processed_root, _name), exist_ok=True)
@@ -245,11 +245,11 @@ except Exception as e:
 try:
     backup_destinations = {
             entry.name: entry.path
-            for entry in os.scandir("/config/processed_books")
+            for entry in os.scandir("/volume/calibre-web-automated/config/processed_books")
             if entry.is_dir()
         }
 except FileNotFoundError:
-    # Fallback for test environments where /config might not exist
+    # Fallback for test environments where /volume/calibre-web-automated/config might not exist
     backup_destinations = {}
 except Exception as e:
     print(f"[ingest-processor] WARN: Could not scan processed_books: {e}", flush=True)
@@ -310,7 +310,7 @@ class NewBookProcessor:
         self.ingest_folder, self.library_dir, self.tmp_conversion_dir = self.get_dirs("/app/calibre-web-automated/dirs.json")
         self.ingest_folder = os.path.normpath(self.ingest_folder)
         # Ensure library_dir is consistent with the main app's config
-        with sqlite3.connect("/config/app.db", timeout=30) as con:
+        with sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30) as con:
             cur = con.cursor()
             try:
                 db_path = cur.execute('SELECT config_calibre_dir FROM settings;').fetchone()[0]
@@ -332,7 +332,7 @@ class NewBookProcessor:
 
         # Calibre environment
         self.calibre_env = os.environ.copy()
-        self.calibre_env["HOME"] = "/config"  # Enable plugins under /config
+        self.calibre_env["HOME"] = "/volume/calibre-web-automated/config"  # Enable plugins under /volume/calibre-web-automated/config
 
         self.metadata_db = os.path.join(self.library_dir, "metadata.db")
         # Split library support
@@ -363,7 +363,7 @@ class NewBookProcessor:
             return []
     def get_split_library(self) -> dict[str, str] | None:
         """Checks whether or not the user has split library enabled. Returns None if they don't and the path of the Split Library location if True."""
-        with sqlite3.connect("/config/app.db", timeout=30) as con:
+        with sqlite3.connect("/volume/calibre-web-automated/config/app.db", timeout=30) as con:
             cur = con.cursor()
             split_library = cur.execute('SELECT config_calibre_split FROM settings;').fetchone()[0]
 
@@ -818,7 +818,7 @@ class NewBookProcessor:
             actual_title = result[1]
 
             # Get users with auto-send enabled
-            app_db_path = "/config/app.db"
+            app_db_path = "/volume/calibre-web-automated/config/app.db"
             with sqlite3.connect(app_db_path, timeout=30) as con:
                 cur = con.cursor()
                 cur.execute("""
