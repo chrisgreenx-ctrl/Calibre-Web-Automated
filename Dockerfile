@@ -286,9 +286,12 @@ COPY --from=unrar /usr/bin/unrar-ubuntu /usr/bin/unrar
 ENV CALIBRE_CONFIG_DIR=/config/.config/calibre
 
 # Ports and volumes
-WORKDIR /config
+WORKDIR /volume/config
 # The default port CWA listens on. Can be overridden with the CWA_PORT_OVERRIDE environment variable.
 EXPOSE 8083
+VOLUME /volume/config
+VOLUME /volume/cwa-book-ingest
+VOLUME /volume/calibre-library
 
 # Health check for container orchestration
 # Uses shell form to support environment variable substitution for CWA_PORT_OVERRIDE
