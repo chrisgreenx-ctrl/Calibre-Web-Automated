@@ -212,6 +212,67 @@ for d in "${requiredDirs[@]}"; do
 done
 
 #------------------------------------------------------------------------------------------------------------------------
+#  Ensure database files are writable (critical for metadata updates)
+#------------------------------------------------------------------------------------------------------------------------
+
+echo "[cwa-init] Checking database file permissions..."
+
+# List of database files that need write access
+declare -a dbFiles=(
+  "/volume/calibre-web-automated/config/app.db"
+  "/volume/calibre-web-automated/config/cwa.db"
+  "/volume/calibre-web-automated/config/gdrive.db"
+  "/volume/calibre-web-automated/calibre-library/metadata.db"
+)
+
+for dbFile in "${dbFiles[@]}"; do
+  if [[ -f "$dbFile" ]]; then
+    echo "[cwa-init] Found database file: $dbFile"
+
+    # Get the directory containing the database (needed for SQLite journal/WAL files)
+    dbDir=$(dirname "$dbFile")
+
+    if [ "${NETWORK_SHARE_MODE,,}" = "true" ] || [ "${NETWORK_SHARE_MODE}" = "1" ] || [ "${NETWORK_SHARE_MODE,,}" = "yes" ] || [ "${NETWORK_SHARE_MODE,,}" = "on" ]; then
+      echo "[cwa-init] NETWORK_SHARE_MODE enabled; skipping ownership change for $dbFile"
+    else
+      # Set ownership of the database file
+      chown abc:abc "$dbFile" 2>/dev/null
+
+      # Also fix any existing SQLite journal/WAL files
+      for ext in "-journal" "-wal" "-shm"; do
+        if [[ -f "${dbFile}${ext}" ]]; then
+          chown abc:abc "${dbFile}${ext}" 2>/dev/null
+          echo "[cwa-init] Fixed ownership of ${dbFile}${ext}"
+        fi
+      done
+    fi
+
+    # Ensure the file is readable and writable (mode 664)
+    chmod 664 "$dbFile" 2>/dev/null
+
+    # Verify the file is writable
+    if [[ -w "$dbFile" ]]; then
+      echo "[cwa-init] Database file $dbFile is writable"
+    else
+      echo "[cwa-init] WARNING: Database file $dbFile is NOT writable!"
+      echo "[cwa-init] This may cause 'attempt to write a readonly database' errors."
+      # Try to get more diagnostic info
+      ls -la "$dbFile" 2>/dev/null || true
+    fi
+
+    # Ensure the directory is writable (SQLite needs this for journal files)
+    if [[ ! -w "$dbDir" ]]; then
+      echo "[cwa-init] WARNING: Directory $dbDir is NOT writable!"
+      echo "[cwa-init] SQLite requires write access to the database directory for journal files."
+    fi
+  else
+    echo "[cwa-init] Database file not found (may be created later): $dbFile"
+  fi
+done
+
+echo "[cwa-init] Database permission check complete."
+
+#------------------------------------------------------------------------------------------------------------------------
 #  Qt6 / Kernel compatibility check (conditional ABI tag stripping)
 #------------------------------------------------------------------------------------------------------------------------
 
