@@ -60,8 +60,17 @@ rm -rf /etc/ImageMagick-6/policy.xml
 ln -s /defaults/policy.xml /etc/ImageMagick-6/policy.xml
 
 # create Google drive client_secrets.json file
+# Copy from app directory if it exists, otherwise create empty one
 if [[ ! -f /volume/calibre-web-automated/config/client_secrets.json ]]; then
-    echo "{}" > /volume/calibre-web-automated/config/client_secrets.json
+    if [[ -f /app/calibre-web-automated/client_secrets.json ]]; then
+        echo "[cwa-init] Copying client_secrets.json from app directory..."
+        cp /app/calibre-web-automated/client_secrets.json /volume/calibre-web-automated/config/client_secrets.json
+        chown abc:abc /volume/calibre-web-automated/config/client_secrets.json
+        echo "[cwa-init] client_secrets.json copied successfully"
+    else
+        echo "[cwa-init] No client_secrets.json found in app directory, creating empty one..."
+        echo "{}" > /volume/calibre-web-automated/config/client_secrets.json
+    fi
 fi
 
 # check if kepubify is present and if so make executable
