@@ -42,6 +42,19 @@ if [[ -f "/volume/calibre-web-automated/calibre-library/metadata.db" ]]; then
     fi
 fi
 
+# Fix permissions on all book directories (author folders and book folders)
+# This is critical for editing book metadata which requires write access to book directories
+echo "[svc-calibre-web] Fixing permissions on calibre-library contents..."
+if [[ -d "/volume/calibre-web-automated/calibre-library" ]]; then
+    # Try to fix ownership recursively (may fail on some volume mounts, that's OK)
+    chown -R abc:abc /volume/calibre-web-automated/calibre-library 2>/dev/null || true
+    # Set directory permissions to 775 (rwxrwxr-x) - allows abc user and group to write
+    find /volume/calibre-web-automated/calibre-library -type d -exec chmod 775 {} \; 2>/dev/null || true
+    # Set file permissions to 664 (rw-rw-r--) - allows abc user and group to write
+    find /volume/calibre-web-automated/calibre-library -type f -exec chmod 664 {} \; 2>/dev/null || true
+    echo "[svc-calibre-web] Calibre library permissions fixed"
+fi
+
 # Check config directory is writable (needed for SQLite journal/WAL files)
 if [[ -d "/volume/calibre-web-automated/config" ]]; then
     if s6-setuidgid abc test -w "/volume/calibre-web-automated/config"; then

@@ -273,6 +273,28 @@ done
 echo "[cwa-init] Database permission check complete."
 
 #------------------------------------------------------------------------------------------------------------------------
+#  Fix permissions on calibre-library contents (book directories)
+#  This is critical for editing book metadata which requires write access to book directories
+#------------------------------------------------------------------------------------------------------------------------
+
+echo "[cwa-init] Fixing permissions on calibre-library contents (author/book directories)..."
+if [[ -d "/volume/calibre-web-automated/calibre-library" ]]; then
+    if [ "${NETWORK_SHARE_MODE,,}" = "true" ] || [ "${NETWORK_SHARE_MODE}" = "1" ] || [ "${NETWORK_SHARE_MODE,,}" = "yes" ] || [ "${NETWORK_SHARE_MODE,,}" = "on" ]; then
+        echo "[cwa-init] NETWORK_SHARE_MODE enabled; skipping ownership change for calibre-library contents"
+    else
+        # Try to fix ownership recursively (may fail on some volume mounts, that's OK)
+        chown -R abc:abc /volume/calibre-web-automated/calibre-library 2>/dev/null || true
+    fi
+    # Set directory permissions to 775 (rwxrwxr-x) - allows abc user and group to write
+    find /volume/calibre-web-automated/calibre-library -type d -exec chmod 775 {} \; 2>/dev/null || true
+    # Set file permissions to 664 (rw-rw-r--) - allows abc user and group to write
+    find /volume/calibre-web-automated/calibre-library -type f -exec chmod 664 {} \; 2>/dev/null || true
+    echo "[cwa-init] Calibre library permissions fixed"
+else
+    echo "[cwa-init] Calibre library directory not found, will be created later"
+fi
+
+#------------------------------------------------------------------------------------------------------------------------
 #  Qt6 / Kernel compatibility check (conditional ABI tag stripping)
 #------------------------------------------------------------------------------------------------------------------------
 
