@@ -8,6 +8,53 @@ if [ -z "$CWA_PORT_OVERRIDE" ] && [ -n "$PORT" ]; then
     export CWA_PORT_OVERRIDE="$PORT"
 fi
 
+#------------------------------------------------------------------------------------------------------------------------
+#  Pre-flight database permission check
+#------------------------------------------------------------------------------------------------------------------------
+
+echo "[svc-calibre-web] Running pre-flight database permission check..."
+
+# Check app.db is writable (as abc user)
+if [[ -f "/volume/calibre-web-automated/config/app.db" ]]; then
+    if s6-setuidgid abc test -w "/volume/calibre-web-automated/config/app.db"; then
+        echo "[svc-calibre-web] app.db is writable"
+    else
+        echo "[svc-calibre-web] WARNING: app.db is NOT writable by abc user!"
+        echo "[svc-calibre-web] Attempting to fix permissions..."
+        chown abc:abc /volume/calibre-web-automated/config/app.db 2>/dev/null
+        chmod 664 /volume/calibre-web-automated/config/app.db 2>/dev/null
+    fi
+fi
+
+# Check metadata.db is writable (as abc user) - critical for book metadata updates
+if [[ -f "/volume/calibre-web-automated/calibre-library/metadata.db" ]]; then
+    if s6-setuidgid abc test -w "/volume/calibre-web-automated/calibre-library/metadata.db"; then
+        echo "[svc-calibre-web] metadata.db is writable"
+    else
+        echo "[svc-calibre-web] WARNING: metadata.db is NOT writable by abc user!"
+        echo "[svc-calibre-web] This will cause 'Database Error: attempt to write a readonly database' when updating book metadata."
+        echo "[svc-calibre-web] Attempting to fix permissions..."
+        chown abc:abc /volume/calibre-web-automated/calibre-library/metadata.db 2>/dev/null
+        chmod 664 /volume/calibre-web-automated/calibre-library/metadata.db 2>/dev/null
+        # Also fix the directory for SQLite journal files
+        chown abc:abc /volume/calibre-web-automated/calibre-library 2>/dev/null
+        chmod 775 /volume/calibre-web-automated/calibre-library 2>/dev/null
+    fi
+fi
+
+# Check config directory is writable (needed for SQLite journal/WAL files)
+if [[ -d "/volume/calibre-web-automated/config" ]]; then
+    if s6-setuidgid abc test -w "/volume/calibre-web-automated/config"; then
+        echo "[svc-calibre-web] config directory is writable"
+    else
+        echo "[svc-calibre-web] WARNING: config directory is NOT writable!"
+        chown abc:abc /volume/calibre-web-automated/config 2>/dev/null
+        chmod 775 /volume/calibre-web-automated/config 2>/dev/null
+    fi
+fi
+
+echo "[svc-calibre-web] Pre-flight check complete. Starting Calibre-Web..."
+
 exec \
     s6-notifyoncheck -d -n 300 -w 1000 -c "nc -z localhost ${CWA_PORT_OVERRIDE:-8083}" \
         cd /app/calibre-web-automated s6-setuidgid abc python3 /app/calibre-web-automated/cps.py
