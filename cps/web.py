@@ -1291,6 +1291,15 @@ def get_robots():
         abort(403)
 
 
+@web.route("/googlee2e56f3bf926a898.html")
+def get_google_verification():
+    try:
+        return send_from_directory(constants.BASE_DIR, "googlee2e56f3bf926a898.html")
+    except PermissionError:
+        log.error("No permission to access Google verification file.")
+        abort(403)
+
+
 @web.route("/show/<int:book_id>/<book_format>", defaults={'anyname': 'None'})
 @web.route("/show/<int:book_id>/<book_format>/<anyname>")
 @login_required_if_no_ano
