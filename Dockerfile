@@ -166,7 +166,7 @@ FROM ghcr.io/linuxserver/unrar:latest AS unrar
 FROM ghcr.io/linuxserver/baseimage-ubuntu:noble
 
 ARG BUILD_DATE
-ARG VERSION
+ARG VERSION=V3.1.4
 ARG CALIBREWEB_RELEASE=0.6.24
 ARG CALIBRE_RELEASE=8.9.0
 ARG KEPUBIFY_RELEASE=v4.0.4
