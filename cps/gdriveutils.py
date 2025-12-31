@@ -725,7 +725,15 @@ def get_error_text(client_secrets=None):
         return 'client_secrets.json is missing or not readable'
 
     if 'web' not in filedata:
-        return 'client_secrets.json is not configured for web application'
+        # Check if this is a "Desktop" type credential (common mistake)
+        if 'installed' in filedata:
+            return ('client_secrets.json contains Desktop app credentials. '
+                    'Please create new OAuth 2.0 credentials in Google Cloud Console '
+                    'with type "Web application" (not "Desktop") and add redirect URI: '
+                    'https://YOUR-DOMAIN/gdrive/callback')
+        return ('client_secrets.json is not configured for web application. '
+                'Please download OAuth 2.0 credentials from Google Cloud Console '
+                'with type "Web application" and ensure the JSON has a "web" key at top level.')
     if 'redirect_uris' not in filedata['web']:
         return 'Callback url (redirect url) is missing in client_secrets.json'
     if client_secrets:

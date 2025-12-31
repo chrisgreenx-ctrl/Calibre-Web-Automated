@@ -60,17 +60,67 @@ rm -rf /etc/ImageMagick-6/policy.xml
 ln -s /defaults/policy.xml /etc/ImageMagick-6/policy.xml
 
 # create Google drive client_secrets.json file
-# Copy from app directory if it exists, otherwise create empty one
-if [[ ! -f /volume/calibre-web-automated/config/client_secrets.json ]]; then
-    if [[ -f /app/calibre-web-automated/client_secrets.json ]]; then
+# Copy from app directory if it exists (and is valid), otherwise create template
+# Function to check if client_secrets.json has the required 'web' key
+validate_client_secrets() {
+    local file="$1"
+    if [[ ! -f "$file" ]]; then
+        return 1
+    fi
+    # Check if file contains the "web" key (required for web application OAuth)
+    if grep -q '"web"' "$file" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+CONFIG_CLIENT_SECRETS="/volume/calibre-web-automated/config/client_secrets.json"
+APP_CLIENT_SECRETS="/app/calibre-web-automated/client_secrets.json"
+
+if [[ ! -f "$CONFIG_CLIENT_SECRETS" ]]; then
+    # File doesn't exist - copy from app or create template
+    if [[ -f "$APP_CLIENT_SECRETS" ]] && validate_client_secrets "$APP_CLIENT_SECRETS"; then
         echo "[cwa-init] Copying client_secrets.json from app directory..."
-        cp /app/calibre-web-automated/client_secrets.json /volume/calibre-web-automated/config/client_secrets.json
-        chown abc:abc /volume/calibre-web-automated/config/client_secrets.json
+        cp "$APP_CLIENT_SECRETS" "$CONFIG_CLIENT_SECRETS"
+        chown abc:abc "$CONFIG_CLIENT_SECRETS"
         echo "[cwa-init] client_secrets.json copied successfully"
     else
-        echo "[cwa-init] No client_secrets.json found in app directory, creating empty one..."
-        echo "{}" > /volume/calibre-web-automated/config/client_secrets.json
+        echo "[cwa-init] No valid client_secrets.json found in app directory, creating template..."
+        echo "[cwa-init] NOTE: To use Google Drive, create OAuth 2.0 credentials in Google Cloud Console"
+        echo "[cwa-init]       Choose 'Web application' type (not Desktop) and add redirect URI:"
+        echo "[cwa-init]       https://YOUR-RAILWAY-DOMAIN/gdrive/callback"
+        cat > "$CONFIG_CLIENT_SECRETS" << 'TEMPLATE_EOF'
+{
+  "web": {
+    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+    "project_id": "YOUR_PROJECT_ID",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "redirect_uris": ["https://YOUR-RAILWAY-DOMAIN/gdrive/callback"]
+  }
+}
+TEMPLATE_EOF
+        chown abc:abc "$CONFIG_CLIENT_SECRETS"
     fi
+elif ! validate_client_secrets "$CONFIG_CLIENT_SECRETS"; then
+    # File exists but is invalid (missing 'web' key - likely empty {} or Desktop type)
+    echo "[cwa-init] WARNING: Existing client_secrets.json is invalid (missing 'web' key)"
+    if [[ -f "$APP_CLIENT_SECRETS" ]] && validate_client_secrets "$APP_CLIENT_SECRETS"; then
+        echo "[cwa-init] Replacing with valid client_secrets.json from app directory..."
+        cp "$APP_CLIENT_SECRETS" "$CONFIG_CLIENT_SECRETS"
+        chown abc:abc "$CONFIG_CLIENT_SECRETS"
+        echo "[cwa-init] client_secrets.json replaced successfully"
+    else
+        echo "[cwa-init] ERROR: Your client_secrets.json is not configured for web application."
+        echo "[cwa-init]        This usually means you downloaded 'Desktop' type credentials from Google Cloud Console."
+        echo "[cwa-init]        Please create new OAuth 2.0 credentials with 'Web application' type and add redirect URI:"
+        echo "[cwa-init]        https://YOUR-RAILWAY-DOMAIN/gdrive/callback"
+        echo "[cwa-init]        Then replace the file at: $CONFIG_CLIENT_SECRETS"
+    fi
+else
+    echo "[cwa-init] Valid client_secrets.json found in config directory"
 fi
 
 # check if kepubify is present and if so make executable
